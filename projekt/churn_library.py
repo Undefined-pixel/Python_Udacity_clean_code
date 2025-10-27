@@ -42,7 +42,7 @@ def perform_eda(df):
     
     plt.figure(figsize=(20,10))
     plt.title('Churn_Distribution')     
-    df['Churn'].hist();
+    df['Churn'].hist()
     plt.savefig("images/eda/churn_distribution.png", bbox_inches='tight')
     plt.close()
     pass
