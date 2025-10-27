@@ -23,7 +23,9 @@ def import_data(pth:str):
             df: pandas dataframe
     '''	
     df = pd.read_csv(pth)
-    df['Churn'] = df['Attrition_Flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
+    df['Churn'] = df['Attrition_Flag'].apply( 
+        lambda val: 0 if val == "Existing Customer" else 1)
+
     return df 
 
 
@@ -104,7 +106,19 @@ def encoder_helper(df, category_lst, response):
     output:
             df: pandas dataframe with new columns for
     '''
-    pass
+    if not pd.api.types.is_numeric_dtype(df[response]):
+        raise ValueError(f"Die Zielvariable '{response}' muss numerisch sein (z. B. 0/1).")
+
+    for column in category_lst:
+        if column not in df.columns:
+            print(f"⚠️ Spalte '{column}' nicht im DataFrame – wird übersprungen.")
+            continue
+
+        mean_churn = df.groupby(column)[response].mean()
+
+        df[column + '_' + response] = df[column].map(mean_churn)
+
+    return df
 
 
 def perform_feature_engineering(df, response):
@@ -171,5 +185,11 @@ def train_models(X_train, X_test, y_train, y_test):
 
 if __name__ == '__main__':
     df = import_data(PATH) 
-    print_df(df)
-    perform_eda(df)  
+    perform_eda(df)
+    category_lst = [
+        'Gender',
+        'Education_Level',
+        'Marital_Status',
+        'Income_Category',
+        'Card_Category']
+    df = encoder_helper(df, category_lst, 'Churn')

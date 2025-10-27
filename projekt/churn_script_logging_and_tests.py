@@ -2,7 +2,7 @@ import os
 import logging
 import pandas as pd
 import pytest  
-from churn_library import import_data, perform_eda
+from churn_library import import_data, perform_eda, encoder_helper
 from constants import PATH
 
 logging.basicConfig(
@@ -16,6 +16,12 @@ def perform_eda():
     """Fixture returns the perform_eda function."""
     from churn_library import perform_eda as _perform_eda
     return _perform_eda
+
+@pytest.fixture
+def encoder_helper():
+    """Fixture returns the encoder_helper function."""
+    from churn_library import encoder_helper as _encoder_helper
+    return _encoder_helper
 
 def test_import():
 	'''
@@ -47,12 +53,25 @@ def test_eda(perform_eda):
         logging.error("TEST perform_eda: An error occurred")
         raise err
 
+def test_encoder_helper(encoder_helper):
+    '''
+    test encoder helper
+    '''
+    try:
+        df = import_data(PATH)
+        category_lst = [
+            'Gender',
+            'Education_Level',
+            'Marital_Status',
+            'Income_Category',
+            'Card_Category']
+        df = encoder_helper(df, category_lst, 'Churn')
+        assert 'Gender_Churn' in df.columns
+        logging.info("Testing encoder_helper: SUCCESS")
+    except Exception as err:
+        logging.error("Testing encoder_helper: An error occurred")
+        raise err
 
-
-# def test_encoder_helper(encoder_helper):
-# 	'''
-# 	test encoder helper
-# 	'''
 
 
 # def test_perform_feature_engineering(perform_feature_engineering):
@@ -70,7 +89,7 @@ def test_eda(perform_eda):
 if __name__ == "__main__":
 	test_import()
 	test_eda(perform_eda)
-
+	test_encoder_helper(encoder_helper)
 
 
 
