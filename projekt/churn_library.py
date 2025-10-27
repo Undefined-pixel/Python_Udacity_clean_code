@@ -22,13 +22,14 @@ def import_data(pth:str):
     output:
             df: pandas dataframe
     '''	
-    df = pd.read_csv(pth + "bank_data.csv")
+    df = pd.read_csv(pth)
+    df['Churn'] = df['Attrition_Flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
     return df 
 
 
 def perform_eda(df):
     '''
-    perform eda on df and save figures to images folder
+    perform eda (Exploratory Data Analysis) on df and save figures to images folder
     input: 
             df: pandas dataframe
 
@@ -36,16 +37,58 @@ def perform_eda(df):
             None
     '''
     os.makedirs("images/eda", exist_ok=True)
-    
-    
-    df['Churn'] = df['Attrition_Flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
-    
+
+    # Histogram of Churn Distribution
     plt.figure(figsize=(20,10))
     plt.title('Churn_Distribution')     
     df['Churn'].hist()
-    plt.savefig("images/eda/churn_distribution.png", bbox_inches='tight')
+    plt.xlabel('x')
+    plt.ylabel('y') 
+    plt.savefig("images/eda/churn_distribution.png")
+    plt.close()        
+                       
+    # Histogram of Customer Age
+    plt.figure(figsize=(20, 10))
+    df['Customer_Age'].hist()
+    plt.title('Distribution of Customer Age')
+    plt.xlabel('Age')
+    plt.ylabel('Frequency')
+    plt.savefig('images/eda/customer_age_distribution.png')
     plt.close()
-    pass
+
+    # Bar plot of Marital Status
+    plt.figure(figsize=(20, 10))
+    df['Marital_Status'].value_counts(normalize=True).plot(kind='bar')
+    plt.title('Marital Status Distribution')
+    plt.xlabel('Marital Status')
+    plt.ylabel('Proportion')
+    plt.savefig('images/eda/marital_status_distribution.png')
+    plt.close()
+
+    # Bar plot of Normalized Marital Status
+    plt.figure(figsize=(20, 10))
+    df['Marital_Status'].value_counts(normalize=True).plot(kind='bar')
+    plt.title('Normalized Marital Status Distribution')
+    plt.xlabel('Marital Status')
+    plt.ylabel('Proportion')
+    plt.savefig('images/eda/normalized_marital_status_distribution.png')
+    plt.close()
+
+    # Density plot of Total_Trans_Ct
+    plt.figure(figsize=(20, 10))
+    sns.histplot(df['Total_Trans_Ct'], stat='density', kde=True)
+    plt.title('Density Plot of Total Transaction Count')
+    plt.xlabel('Total Transaction Count')
+    plt.ylabel('Density')
+    plt.savefig('images/eda/total_transaction_count_density.png')
+    plt.close()
+
+    # Heatmap of Correlation Matrix
+    plt.figure(figsize=(20, 10))
+    sns.heatmap(df.select_dtypes(include=['number']).corr(), annot=False, cmap='Dark2_r', linewidths=2)
+    plt.title('Correlation Matrix')
+    plt.savefig('images/eda/correlation_matrix.png')
+    plt.close()
 
 
 def encoder_helper(df, category_lst, response):
