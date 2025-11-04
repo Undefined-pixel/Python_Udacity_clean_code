@@ -115,7 +115,7 @@ def encoder_helper(df, category_lst, response):
     input:
             df: pandas dataframe
             category_lst: list of columns that contain categorical features
-            response: string of response name [optional argument that could be used for naming variables or index y column]
+            response: string [optional argument that could be used for naming variables or index y column]
 
     output:
             df: pandas dataframe with new columns for
@@ -127,7 +127,8 @@ def encoder_helper(df, category_lst, response):
 
     for column in category_lst:
         if column not in df.columns:
-            print(f"⚠️ Spalte '{column}' nicht im DataFrame – wird übersprungen.")
+            print(
+                f"⚠️ Spalte '{column}' nicht im DataFrame – wird übersprungen.")
             continue
 
         mean_churn = df.groupby(column)[response].mean()
@@ -141,7 +142,7 @@ def perform_feature_engineering(df, response):
     """
     input:
               df: pandas dataframe
-              response: string of response name [optional argument that could be used for naming variables or index y column]
+              response: string [optional argument that could be used for naming variables or index y column]
 
     output:
               X_train: X training data
@@ -226,10 +227,15 @@ def classification_report_image(
     ]
 
     for ax, (key, report), title in zip(axes.flat, reports.items(), titles):
-        df_report = pd.DataFrame(report).iloc[:-1, :].T  # Exclude 'accuracy' row
+        # Exclude 'accuracy' row
+        df_report = pd.DataFrame(report).iloc[:-1, :].T
         sns.heatmap(
-            df_report, annot=True, cmap="coolwarm", fmt=".2f", ax=ax, cbar=False
-        )
+            df_report,
+            annot=True,
+            cmap="coolwarm",
+            fmt=".2f",
+            ax=ax,
+            cbar=False)
         ax.set_title(title)
         ax.set_ylabel("Classes")
         ax.set_xlabel("Metrics")
@@ -311,7 +317,8 @@ def train_models(X_train, X_test, y_train, y_test):
 
     plt.figure(figsize=(15, 8))
     ax = plt.gca()
-    lrc_plot = RocCurveDisplay.from_estimator(lrc, X_test, y_test, ax=ax, alpha=0.8)
+    lrc_plot = RocCurveDisplay.from_estimator(
+        lrc, X_test, y_test, ax=ax, alpha=0.8)
     rfc_disp = RocCurveDisplay.from_estimator(
         cv_rfc.best_estimator_, X_test, y_test, ax=ax, alpha=0.8
     )
@@ -338,8 +345,10 @@ if __name__ == "__main__":
 
     y_train_preds_rf = joblib.load("./models/rfc_model.pkl").predict(X_train)
     y_test_preds_rf = joblib.load("./models/rfc_model.pkl").predict(X_test)
-    y_train_preds_lr = joblib.load("./models/logistic_model.pkl").predict(X_train)
-    y_test_preds_lr = joblib.load("./models/logistic_model.pkl").predict(X_test)
+    y_train_preds_lr = joblib.load(
+        "./models/logistic_model.pkl").predict(X_train)
+    y_test_preds_lr = joblib.load(
+        "./models/logistic_model.pkl").predict(X_test)
     classification_report_image(
         y_train,
         y_test,

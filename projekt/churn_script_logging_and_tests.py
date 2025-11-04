@@ -115,7 +115,9 @@ def test_encoder_helper(encoder_helper):
         raise err
 
 
-def test_perform_feature_engineering(perform_feature_engineering, encoder_helper):
+def test_perform_feature_engineering(
+        perform_feature_engineering,
+        encoder_helper):
     """
     test perform_feature_engineering
     """
@@ -129,7 +131,8 @@ def test_perform_feature_engineering(perform_feature_engineering, encoder_helper
             "Card_Category",
         ]
         df = encoder_helper(df, category_lst, "Churn")
-        X_train, X_test, y_train, y_test = perform_feature_engineering(df, "Churn")
+        X_train, X_test, y_train, y_test = perform_feature_engineering(
+            df, "Churn")
         assert X_train.shape[0] > 0
         assert X_test.shape[0] > 0
         assert y_train.shape[0] > 0
@@ -175,7 +178,10 @@ def test_classification_report_image(tmp_path):
     logging.info("TEST classification_report_image: SUCCESS")
 
 
-def test_train_models(train_models, encoder_helper, perform_feature_engineering):
+def test_train_models(
+        train_models,
+        encoder_helper,
+        perform_feature_engineering):
     """
     test train_models
     """
@@ -190,7 +196,8 @@ def test_train_models(train_models, encoder_helper, perform_feature_engineering)
             "Card_Category",
         ]
         df = encoder_helper(df, category_lst, "Churn")
-        X_train, X_test, y_train, y_test = perform_feature_engineering(df, "Churn")
+        X_train, X_test, y_train, y_test = perform_feature_engineering(
+            df, "Churn")
         train_models(X_train, X_test, y_train, y_test)
 
         # Check if model files and images are created
@@ -209,5 +216,6 @@ if __name__ == "__main__":
     test_import()
     test_eda(perform_eda)
     test_encoder_helper(encoder_helper)
-    test_perform_feature_engineering(perform_feature_engineering, encoder_helper)
+    test_perform_feature_engineering(
+        perform_feature_engineering, encoder_helper)
     train_models(train_models, encoder_helper, perform_feature_engineering)
