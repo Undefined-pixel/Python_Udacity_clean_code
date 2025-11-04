@@ -1,13 +1,18 @@
-# library doc string
-
-
 # import libraries
 import os
 import pandas as pd
+import numpy as np
+import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from constants import PATH
+
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import RocCurveDisplay
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
@@ -196,7 +201,42 @@ def classification_report_image(
     output:
              None
     """
-    pass
+
+    reports = {
+        "LR Train": classification_report(
+            y_train, y_train_preds_lr, output_dict=True, zero_division=0
+        ),
+        "LR Test": classification_report(
+            y_test, y_test_preds_lr, output_dict=True, zero_division=0
+        ),
+        "RF Train": classification_report(
+            y_train, y_train_preds_rf, output_dict=True, zero_division=0
+        ),
+        "RF Test": classification_report(
+            y_test, y_test_preds_rf, output_dict=True, zero_division=0
+        ),
+    }
+
+    fig, axes = plt.subplots(2, 2, figsize=(18, 12))
+    titles = [
+        "Logistic Regression - Train",
+        "Logistic Regression - Test",
+        "Random Forest - Train",
+        "Random Forest - Test",
+    ]
+
+    for ax, (key, report), title in zip(axes.flat, reports.items(), titles):
+        df_report = pd.DataFrame(report).iloc[:-1, :].T  # Exclude 'accuracy' row
+        sns.heatmap(
+            df_report, annot=True, cmap="coolwarm", fmt=".2f", ax=ax, cbar=False
+        )
+        ax.set_title(title)
+        ax.set_ylabel("Classes")
+        ax.set_xlabel("Metrics")
+
+    plt.tight_layout()
+    plt.savefig("images/classification_report.png")
+    plt.close()
 
 
 def feature_importance_plot(model, X_data, output_pth):
@@ -210,7 +250,17 @@ def feature_importance_plot(model, X_data, output_pth):
     output:
              None
     """
-    pass
+    importances = model.feature_importances_
+    indices = np.argsort(importances)[::-1]
+    names = [X_data.columns[i] for i in indices]
+
+    plt.figure(figsize=(10, 6))
+    plt.title("Feature Importance")
+    plt.bar(range(X_data.shape[1]), importances[indices])
+    plt.xticks(range(X_data.shape[1]), names, rotation=90)
+    plt.tight_layout()
+    plt.savefig(output_pth)
+    plt.close()
 
 
 def train_models(X_train, X_test, y_train, y_test):
@@ -224,7 +274,51 @@ def train_models(X_train, X_test, y_train, y_test):
     output:
               None
     """
-    pass
+    rfc = RandomForestClassifier(random_state=42)
+
+    param_grid = {
+        "n_estimators": [200, 500],
+        "max_features": ["sqrt", "log2"],  # 'auto' entfernen!
+        "max_depth": [4, 5, 100],
+        "criterion": ["gini", "entropy"],
+    }
+    cv_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
+    cv_rfc.fit(X_train, y_train)
+
+    lrc = LogisticRegression(solver="lbfgs", max_iter=5000)
+    lrc.fit(X_train, y_train)
+
+    y_train_preds_rf = cv_rfc.best_estimator_.predict(X_train)
+    y_test_preds_rf = cv_rfc.best_estimator_.predict(X_test)
+
+    y_train_preds_lr = lrc.predict(X_train)
+    y_test_preds_lr = lrc.predict(X_test)
+
+    classification_report_image(
+        y_train,
+        y_test,
+        y_train_preds_lr,
+        y_train_preds_rf,
+        y_test_preds_lr,
+        y_test_preds_rf,
+    )
+    feature_importance_plot(
+        cv_rfc.best_estimator_, X_train, "images/feature_importance.png"
+    )
+
+    joblib.dump(cv_rfc.best_estimator_, "./models/rfc_model.pkl")
+    joblib.dump(lrc, "./models/logistic_model.pkl")
+
+    plt.figure(figsize=(15, 8))
+    ax = plt.gca()
+    lrc_plot = RocCurveDisplay.from_estimator(lrc, X_test, y_test, ax=ax, alpha=0.8)
+    rfc_disp = RocCurveDisplay.from_estimator(
+        cv_rfc.best_estimator_, X_test, y_test, ax=ax, alpha=0.8
+    )
+    lrc_plot.plot(ax=ax, alpha=0.8)
+    plt.tight_layout()
+    plt.savefig("images/ROC_Curve.png")
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -239,3 +333,18 @@ if __name__ == "__main__":
     ]
     df = encoder_helper(df, category_lst, "Churn")
     X_train, X_test, y_train, y_test = perform_feature_engineering(df, "Churn")
+
+    train_models(X_train, X_test, y_train, y_test)
+
+    y_train_preds_rf = joblib.load("./models/rfc_model.pkl").predict(X_train)
+    y_test_preds_rf = joblib.load("./models/rfc_model.pkl").predict(X_test)
+    y_train_preds_lr = joblib.load("./models/logistic_model.pkl").predict(X_train)
+    y_test_preds_lr = joblib.load("./models/logistic_model.pkl").predict(X_test)
+    classification_report_image(
+        y_train,
+        y_test,
+        y_train_preds_lr,
+        y_train_preds_rf,
+        y_test_preds_lr,
+        y_test_preds_rf,
+    )
