@@ -1,25 +1,23 @@
-# import libraries
+"""
+Library of functions for customer churn prediction.
+Includes data import, EDA, feature engineering, model training, and reporting.
+Date: 2025-11-04
+"""
+
 import os
 import pandas as pd
 import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from constants import PATH
-
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import RocCurveDisplay
-
+from constants import PATH
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
-
-
-def print_df(df):
-    print(df.head())
-
 
 def import_data(pth: str):
     """
@@ -115,7 +113,7 @@ def encoder_helper(df, category_lst, response):
     input:
             df: pandas dataframe
             category_lst: list of columns that contain categorical features
-            response: string [optional argument that could be used for naming variables or index y column]
+            response: string [optional argument that could be used for naming or index y column]
 
     output:
             df: pandas dataframe with new columns for
@@ -142,15 +140,15 @@ def perform_feature_engineering(df, response):
     """
     input:
               df: pandas dataframe
-              response: string [optional argument that could be used for naming variables or index y column]
+              response: string [optional argument that could be used for naming or index y column]
 
     output:
-              X_train: X training data
-              X_test: X testing data
+              x_train: x training data
+              x_test: x testing data
               y_train: y training data
               y_test: y testing data
     """
-    X = pd.DataFrame()
+    temp_frame = pd.DataFrame()
     keep_cols = [
         "Customer_Age",
         "Dependent_count",
@@ -172,14 +170,14 @@ def perform_feature_engineering(df, response):
         "Income_Category_Churn",
         "Card_Category_Churn",
     ]
-    X[keep_cols] = df[keep_cols]
+    temp_frame[keep_cols] = df[keep_cols]
     y = df[response]
     x_train, x_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.3, random_state=42
+        temp_frame, y, test_size=0.3, random_state=42
     )
     return x_train, x_test, y_train, y_test
 
-
+# pylint: disable=too-many-arguments
 def classification_report_image(
     y_train,
     y_test,
@@ -218,7 +216,7 @@ def classification_report_image(
         ),
     }
 
-    fig, axes = plt.subplots(2, 2, figsize=(18, 12))
+    _, axes = plt.subplots(2, 2, figsize=(18, 12))
     titles = [
         "Logistic Regression - Train",
         "Logistic Regression - Test",
@@ -226,7 +224,7 @@ def classification_report_image(
         "Random Forest - Test",
     ]
 
-    for ax, (key, report), title in zip(axes.flat, reports.items(), titles):
+    for ax, (_, report), title in zip(axes.flat, reports.items(), titles):
         # Exclude 'accuracy' row
         df_report = pd.DataFrame(report).iloc[:-1, :].T
         sns.heatmap(
@@ -245,12 +243,12 @@ def classification_report_image(
     plt.close()
 
 
-def feature_importance_plot(model, X_data, output_pth):
+def feature_importance_plot(model, x_data, output_pth):
     """
     creates and stores the feature importances in pth
     input:
             model: model object containing feature_importances_
-            X_data: pandas dataframe of X values
+            x_data: pandas dataframe of X values
             output_pth: path to store the figure
 
     output:
@@ -258,23 +256,23 @@ def feature_importance_plot(model, X_data, output_pth):
     """
     importances = model.feature_importances_
     indices = np.argsort(importances)[::-1]
-    names = [X_data.columns[i] for i in indices]
+    names = [x_data.columns[i] for i in indices]
 
     plt.figure(figsize=(10, 6))
     plt.title("Feature Importance")
-    plt.bar(range(X_data.shape[1]), importances[indices])
-    plt.xticks(range(X_data.shape[1]), names, rotation=90)
+    plt.bar(range(x_data.shape[1]), importances[indices])
+    plt.xticks(range(x_data.shape[1]), names, rotation=90)
     plt.tight_layout()
     plt.savefig(output_pth)
     plt.close()
 
 
-def train_models(X_train, X_test, y_train, y_test):
+def train_models(x_train, x_test, y_train, y_test):
     """
     train, store model results: images + scores, and store models
     input:
-              X_train: X training data
-              X_test: X testing data
+              x_train: X training data
+              x_test: X testing data
               y_train: y training data
               y_test: y testing data
     output:
@@ -289,16 +287,16 @@ def train_models(X_train, X_test, y_train, y_test):
         "criterion": ["gini", "entropy"],
     }
     cv_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
-    cv_rfc.fit(X_train, y_train)
+    cv_rfc.fit(x_train, y_train)
 
     lrc = LogisticRegression(solver="lbfgs", max_iter=5000)
-    lrc.fit(X_train, y_train)
+    lrc.fit(x_train, y_train)
 
-    y_train_preds_rf = cv_rfc.best_estimator_.predict(X_train)
-    y_test_preds_rf = cv_rfc.best_estimator_.predict(X_test)
+    y_train_preds_rf = cv_rfc.best_estimator_.predict(x_train)
+    y_test_preds_rf = cv_rfc.best_estimator_.predict(x_test)
 
-    y_train_preds_lr = lrc.predict(X_train)
-    y_test_preds_lr = lrc.predict(X_test)
+    y_train_preds_lr = lrc.predict(x_train)
+    y_test_preds_lr = lrc.predict(x_test)
 
     classification_report_image(
         y_train,
@@ -309,7 +307,7 @@ def train_models(X_train, X_test, y_train, y_test):
         y_test_preds_rf,
     )
     feature_importance_plot(
-        cv_rfc.best_estimator_, X_train, "images/feature_importance.png"
+        cv_rfc.best_estimator_, x_train, "images/feature_importance.png"
     )
 
     joblib.dump(cv_rfc.best_estimator_, "./models/rfc_model.pkl")
@@ -318,9 +316,9 @@ def train_models(X_train, X_test, y_train, y_test):
     plt.figure(figsize=(15, 8))
     ax = plt.gca()
     lrc_plot = RocCurveDisplay.from_estimator(
-        lrc, X_test, y_test, ax=ax, alpha=0.8)
-    rfc_disp = RocCurveDisplay.from_estimator(
-        cv_rfc.best_estimator_, X_test, y_test, ax=ax, alpha=0.8
+        lrc, x_test, y_test, ax=ax, alpha=0.8)
+    RocCurveDisplay.from_estimator(
+        cv_rfc.best_estimator_, x_test, y_test, ax=ax, alpha=0.8
     )
     lrc_plot.plot(ax=ax, alpha=0.8)
     plt.tight_layout()
@@ -329,31 +327,29 @@ def train_models(X_train, X_test, y_train, y_test):
 
 
 if __name__ == "__main__":
-    df = import_data(PATH)
-    perform_eda(df)
-    category_lst = [
+    dataframe = import_data(PATH)
+    perform_eda(dataframe)
+    category_lst_input = [
         "Gender",
         "Education_Level",
         "Marital_Status",
         "Income_Category",
         "Card_Category",
     ]
-    df = encoder_helper(df, category_lst, "Churn")
-    X_train, X_test, y_train, y_test = perform_feature_engineering(df, "Churn")
-
-    train_models(X_train, X_test, y_train, y_test)
-
-    y_train_preds_rf = joblib.load("./models/rfc_model.pkl").predict(X_train)
-    y_test_preds_rf = joblib.load("./models/rfc_model.pkl").predict(X_test)
-    y_train_preds_lr = joblib.load(
-        "./models/logistic_model.pkl").predict(X_train)
-    y_test_preds_lr = joblib.load(
-        "./models/logistic_model.pkl").predict(X_test)
+    dataframe = encoder_helper(dataframe, category_lst_input, "Churn")
+    x_train_data, x_test_data, y_train_data, y_test_data = perform_feature_engineering(dataframe, "Churn")
+    train_models(x_train_data, x_test_data, y_train_data, y_test_data)
+    y_train_preds_rf_data = joblib.load("./models/rfc_model.pkl").predict(x_train_data)
+    y_test_preds_rf_data = joblib.load("./models/rfc_model.pkl").predict(x_test_data)
+    y_train_preds_lr_data = joblib.load(
+        "./models/logistic_model.pkl").predict(x_train_data)
+    y_test_preds_lr_data = joblib.load(
+        "./models/logistic_model.pkl").predict(x_test_data)
     classification_report_image(
-        y_train,
-        y_test,
-        y_train_preds_lr,
-        y_train_preds_rf,
-        y_test_preds_lr,
-        y_test_preds_rf,
+        y_train_data,
+        y_test_data,
+        y_train_preds_lr_data,
+        y_train_preds_rf_data,
+        y_test_preds_lr_data,
+        y_test_preds_rf_data,
     )

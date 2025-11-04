@@ -1,7 +1,10 @@
+"""
+test function in churm library.
+Date: 2025-11-04
+"""
 import os
 import warnings
 import logging
-import pandas as pd
 import pytest
 from churn_library import (
     import_data,
