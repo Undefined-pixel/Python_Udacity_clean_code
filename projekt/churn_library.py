@@ -7,94 +7,103 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from constants import PATH
-os.environ['QT_QPA_PLATFORM']='offscreen'
+from sklearn.model_selection import train_test_split
+
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 
 def print_df(df):
     print(df.head())
 
-def import_data(pth:str):
-    '''
+
+def import_data(pth: str):
+    """
     returns dataframe for the csv found at pth
 
     input:
             pth: a path to the csv
     output:
             df: pandas dataframe
-    '''	
+    """
     df = pd.read_csv(pth)
-    df['Churn'] = df['Attrition_Flag'].apply( 
-        lambda val: 0 if val == "Existing Customer" else 1)
+    df["Churn"] = df["Attrition_Flag"].apply(
+        lambda val: 0 if val == "Existing Customer" else 1
+    )
 
-    return df 
+    return df
 
 
 def perform_eda(df):
-    '''
+    """
     perform eda (Exploratory Data Analysis) on df and save figures to images folder
-    input: 
+    input:
             df: pandas dataframe
 
     output:
             None
-    '''
+    """
     os.makedirs("images/eda", exist_ok=True)
 
     # Histogram of Churn Distribution
-    plt.figure(figsize=(20,10))
-    plt.title('Churn_Distribution')     
-    df['Churn'].hist()
-    plt.xlabel('x')
-    plt.ylabel('y') 
+    plt.figure(figsize=(20, 10))
+    plt.title("Churn_Distribution")
+    df["Churn"].hist()
+    plt.xlabel("x")
+    plt.ylabel("y")
     plt.savefig("images/eda/churn_distribution.png")
-    plt.close()        
-                       
+    plt.close()
+
     # Histogram of Customer Age
     plt.figure(figsize=(20, 10))
-    df['Customer_Age'].hist()
-    plt.title('Distribution of Customer Age')
-    plt.xlabel('Age')
-    plt.ylabel('Frequency')
-    plt.savefig('images/eda/customer_age_distribution.png')
+    df["Customer_Age"].hist()
+    plt.title("Distribution of Customer Age")
+    plt.xlabel("Age")
+    plt.ylabel("Frequency")
+    plt.savefig("images/eda/customer_age_distribution.png")
     plt.close()
 
     # Bar plot of Marital Status
     plt.figure(figsize=(20, 10))
-    df['Marital_Status'].value_counts(normalize=True).plot(kind='bar')
-    plt.title('Marital Status Distribution')
-    plt.xlabel('Marital Status')
-    plt.ylabel('Proportion')
-    plt.savefig('images/eda/marital_status_distribution.png')
+    df["Marital_Status"].value_counts(normalize=True).plot(kind="bar")
+    plt.title("Marital Status Distribution")
+    plt.xlabel("Marital Status")
+    plt.ylabel("Proportion")
+    plt.savefig("images/eda/marital_status_distribution.png")
     plt.close()
 
     # Bar plot of Normalized Marital Status
     plt.figure(figsize=(20, 10))
-    df['Marital_Status'].value_counts(normalize=True).plot(kind='bar')
-    plt.title('Normalized Marital Status Distribution')
-    plt.xlabel('Marital Status')
-    plt.ylabel('Proportion')
-    plt.savefig('images/eda/normalized_marital_status_distribution.png')
+    df["Marital_Status"].value_counts(normalize=True).plot(kind="bar")
+    plt.title("Normalized Marital Status Distribution")
+    plt.xlabel("Marital Status")
+    plt.ylabel("Proportion")
+    plt.savefig("images/eda/normalized_marital_status_distribution.png")
     plt.close()
 
     # Density plot of Total_Trans_Ct
     plt.figure(figsize=(20, 10))
-    sns.histplot(df['Total_Trans_Ct'], stat='density', kde=True)
-    plt.title('Density Plot of Total Transaction Count')
-    plt.xlabel('Total Transaction Count')
-    plt.ylabel('Density')
-    plt.savefig('images/eda/total_transaction_count_density.png')
+    sns.histplot(df["Total_Trans_Ct"], stat="density", kde=True)
+    plt.title("Density Plot of Total Transaction Count")
+    plt.xlabel("Total Transaction Count")
+    plt.ylabel("Density")
+    plt.savefig("images/eda/total_transaction_count_density.png")
     plt.close()
 
     # Heatmap of Correlation Matrix
     plt.figure(figsize=(20, 10))
-    sns.heatmap(df.select_dtypes(include=['number']).corr(), annot=False, cmap='Dark2_r', linewidths=2)
-    plt.title('Correlation Matrix')
-    plt.savefig('images/eda/correlation_matrix.png')
+    sns.heatmap(
+        df.select_dtypes(include=["number"]).corr(),
+        annot=False,
+        cmap="Dark2_r",
+        linewidths=2,
+    )
+    plt.title("Correlation Matrix")
+    plt.savefig("images/eda/correlation_matrix.png")
     plt.close()
 
 
 def encoder_helper(df, category_lst, response):
-    '''
+    """
     helper function to turn each categorical column into a new column with
     propotion of churn for each category - associated with cell 15 from the notebook
 
@@ -105,9 +114,11 @@ def encoder_helper(df, category_lst, response):
 
     output:
             df: pandas dataframe with new columns for
-    '''
+    """
     if not pd.api.types.is_numeric_dtype(df[response]):
-        raise ValueError(f"Die Zielvariable '{response}' muss numerisch sein (z. B. 0/1).")
+        raise ValueError(
+            f"Die Zielvariable '{response}' muss numerisch sein (z. B. 0/1)."
+        )
 
     for column in category_lst:
         if column not in df.columns:
@@ -116,13 +127,13 @@ def encoder_helper(df, category_lst, response):
 
         mean_churn = df.groupby(column)[response].mean()
 
-        df[column + '_' + response] = df[column].map(mean_churn)
+        df[column + "_" + response] = df[column].map(mean_churn)
 
     return df
 
 
 def perform_feature_engineering(df, response):
-    '''
+    """
     input:
               df: pandas dataframe
               response: string of response name [optional argument that could be used for naming variables or index y column]
@@ -132,15 +143,46 @@ def perform_feature_engineering(df, response):
               X_test: X testing data
               y_train: y training data
               y_test: y testing data
-    '''
+    """
+    X = pd.DataFrame()
+    keep_cols = [
+        "Customer_Age",
+        "Dependent_count",
+        "Months_on_book",
+        "Total_Relationship_Count",
+        "Months_Inactive_12_mon",
+        "Contacts_Count_12_mon",
+        "Credit_Limit",
+        "Total_Revolving_Bal",
+        "Avg_Open_To_Buy",
+        "Total_Amt_Chng_Q4_Q1",
+        "Total_Trans_Amt",
+        "Total_Trans_Ct",
+        "Total_Ct_Chng_Q4_Q1",
+        "Avg_Utilization_Ratio",
+        "Gender_Churn",
+        "Education_Level_Churn",
+        "Marital_Status_Churn",
+        "Income_Category_Churn",
+        "Card_Category_Churn",
+    ]
+    X[keep_cols] = df[keep_cols]
+    y = df[response]
+    x_train, x_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42
+    )
+    return x_train, x_test, y_train, y_test
 
-def classification_report_image(y_train,
-                                y_test,
-                                y_train_preds_lr,
-                                y_train_preds_rf,
-                                y_test_preds_lr,
-                                y_test_preds_rf):
-    '''
+
+def classification_report_image(
+    y_train,
+    y_test,
+    y_train_preds_lr,
+    y_train_preds_rf,
+    y_test_preds_lr,
+    y_test_preds_rf,
+):
+    """
     produces classification report for training and testing results and stores report as image
     in images folder
     input:
@@ -153,12 +195,12 @@ def classification_report_image(y_train,
 
     output:
              None
-    '''
+    """
     pass
 
 
 def feature_importance_plot(model, X_data, output_pth):
-    '''
+    """
     creates and stores the feature importances in pth
     input:
             model: model object containing feature_importances_
@@ -167,11 +209,12 @@ def feature_importance_plot(model, X_data, output_pth):
 
     output:
              None
-    '''
+    """
     pass
 
+
 def train_models(X_train, X_test, y_train, y_test):
-    '''
+    """
     train, store model results: images + scores, and store models
     input:
               X_train: X training data
@@ -180,16 +223,19 @@ def train_models(X_train, X_test, y_train, y_test):
               y_test: y testing data
     output:
               None
-    '''
+    """
     pass
 
-if __name__ == '__main__':
-    df = import_data(PATH) 
+
+if __name__ == "__main__":
+    df = import_data(PATH)
     perform_eda(df)
     category_lst = [
-        'Gender',
-        'Education_Level',
-        'Marital_Status',
-        'Income_Category',
-        'Card_Category']
-    df = encoder_helper(df, category_lst, 'Churn')
+        "Gender",
+        "Education_Level",
+        "Marital_Status",
+        "Income_Category",
+        "Card_Category",
+    ]
+    df = encoder_helper(df, category_lst, "Churn")
+    X_train, X_test, y_train, y_test = perform_feature_engineering(df, "Churn")
