@@ -16,7 +16,6 @@ venv/
 
 
 # Optional: logs, build artifacts
-**/*.log
 build/
 dist/
 
