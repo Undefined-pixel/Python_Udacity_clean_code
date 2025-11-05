@@ -84,7 +84,7 @@ This will:
 ## 📈 Outputs
 
 - **EDA Visualizations**: Stored in `images/eda/`
-- **Model Evaluation**: Classification reports, ROC curves, feature importance plots in `images/results/`
+- **Model Evaluation**: Classification reports, ROC curves, feature importance plots in `images`
 - **Trained Models**: Saved as `.pkl` files in `models/`
 
 ---
@@ -92,7 +92,6 @@ This will:
 ## 📺 Screenhot
 
 ### eda
-
 ![churn_distribution](./images/eda/churn_distribution.png)  
 ![correlation_matrix](./images/eda/correlation_matrix.png)  
 ![customer_age_distribution](./images/eda/customer_age_distribution.png)
