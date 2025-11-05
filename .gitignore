@@ -1,24 +1,22 @@
 # macOS system files
-projekt/.DS_Store
+.DS_Store
 
 # Python cache folders
-projekt/__pycache__/
-projekt/**/*.py[cod]
-projekt/**/*$py.class
+__pycache__/
+**/*.py[cod]
+**/*$py.class
 
 # Virtual environment folders
-projekt/v_env_udacity_clean_code/
-
-projekt/venv/
-projekt/.env/
-projekt/.venv/
+venv/
+.env/
+.venv/
 
 # Optional: IDE / Editor files
-projekt/.vscode/
-projekt/.idea/
+.vscode/
+
 
 # Optional: logs, build artifacts
-projekt/**/*.log
-projekt/build/
-projekt/dist/
+**/*.log
+build/
+dist/
 
