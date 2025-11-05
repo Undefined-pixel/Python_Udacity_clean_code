@@ -28,6 +28,7 @@ logging.basicConfig(
     level=logging.INFO,
     filemode="w",
     format="%(name)s - %(levelname)s - %(message)s",
+    force=True
 )
 
 
