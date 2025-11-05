@@ -100,6 +100,6 @@ This will:
 ![normalized_marital_status_distribution](./images/eda/normalized_marital_status_distribution.png)
 ![total_transaction_count_density](./images/eda/total_transaction_count_density.png)
 
-![marital_status_distribution](./images/marital_status_distribution.png)
+![classification_report](./images/classification_report.png)
 ![feature_importance](./images/normalized_marital_status_distribution.png)
 !["ROC_Curve"](./images/ROC_Curve.png)
