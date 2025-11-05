@@ -5,7 +5,6 @@ Date: 2025-11-04
 import os
 import warnings
 import logging
-import pytest
 
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_classification
@@ -32,40 +31,6 @@ logging.basicConfig(
 )
 
 
-@pytest.fixture
-def perform_eda():
-    """Fixture returns the perform_eda function."""
-    from churn_library import perform_eda as _perform_eda
-
-    return _perform_eda
-
-
-@pytest.fixture
-def encoder_helper():
-    """Fixture returns the encoder_helper function."""
-    from churn_library import encoder_helper as _encoder_helper
-
-    return _encoder_helper
-
-
-@pytest.fixture
-def perform_feature_engineering():
-    """Fixture returns the perform feature engineering function."""
-    from churn_library import (
-        perform_feature_engineering as _perform_feature_engineering,
-    )
-
-    return _perform_feature_engineering
-
-
-@pytest.fixture
-def train_models():
-    """Fixture returns the perform feature engineering function."""
-    from churn_library import train_models as _train_models
-
-    return _train_models
-
-
 def test_import():
     """
     test data import - this example is completed for you to assist with the other test functions
@@ -87,20 +52,20 @@ def test_import():
         raise err
 
 
-def test_eda(perform_eda_data):
+def test_eda():
     """
     test perform eda function
     """
     try:
-        df = import_data(PATH)
-        perform_eda_data(df)
+        dataframe = import_data(PATH)
+        perform_eda(dataframe)
         logging.info("TEST perform_eda: SUCCESS")
     except Exception as err:
         logging.error("TEST perform_eda: An error occurred")
         raise err
 
 
-def test_encoder_helper(encoder_helper_data):
+def test_encoder_helper():
     """
     test encoder helper
     """
@@ -113,7 +78,7 @@ def test_encoder_helper(encoder_helper_data):
             "Income_Category",
             "Card_Category",
         ]
-        df = encoder_helper_data(df, category_lst, "Churn")
+        df = encoder_helper(df, category_lst, "Churn")
         assert "Gender_Churn" in df.columns
         logging.info("Testing encoder_helper: SUCCESS")
     except Exception as err:
@@ -121,9 +86,7 @@ def test_encoder_helper(encoder_helper_data):
         raise err
 
 
-def test_perform_feature_engineering(
-        perform_feature_engineering,
-        encoder_helper):
+def test_perform_feature_engineering():
     """
     test perform_feature_engineering
     """
@@ -150,7 +113,7 @@ def test_perform_feature_engineering(
         raise err
 
 
-def test_classification_report_image(tmp_path):
+def test_classification_report_image():
     """
     test classification_report_image
     """
@@ -185,9 +148,7 @@ def test_classification_report_image(tmp_path):
 
 
 def test_train_models(
-        train_models_data,
-        encoder_helper_data,
-        perform_feature_engineering_data):
+):
     """
     test train_models
     """
@@ -201,10 +162,10 @@ def test_train_models(
             "Income_Category",
             "Card_Category",
         ]
-        df = encoder_helper_data(df, category_lst, "Churn")
-        x_train, x_test, y_train, y_test = perform_feature_engineering_data(
+        df = encoder_helper(df, category_lst, "Churn")
+        x_train, x_test, y_train, y_test = perform_feature_engineering(
             df, "Churn")
-        train_models_data(x_train, x_test, y_train, y_test)
+        train_models(x_train, x_test, y_train, y_test)
 
         # Check if model files and images are created
         assert os.path.exists("./models/rfc_model.pkl")
@@ -217,10 +178,10 @@ def test_train_models(
         print("TEST train_models: FAILED")
         raise err
 
+
 if __name__ == "__main__":
     test_import()
-    test_eda(perform_eda)
-    test_encoder_helper(encoder_helper)
-    test_perform_feature_engineering(
-    perform_feature_engineering, encoder_helper)
-    train_models(train_models, encoder_helper, perform_feature_engineering)
+    test_eda()
+    test_encoder_helper()
+    test_perform_feature_engineering()
+    test_train_models()
