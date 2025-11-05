@@ -101,5 +101,5 @@ This will:
 ![total_transaction_count_density](./images/eda/total_transaction_count_density.png)
 
 ![classification_report](./images/classification_report.png)
-![feature_importance](./images/normalized_marital_status_distribution.png)
+![feature_importance](./images/feature_importance.png)
 !["ROC_Curve"](./images/ROC_Curve.png)
