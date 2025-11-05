@@ -6,20 +6,23 @@ import os
 import warnings
 import logging
 import pytest
+
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_classification
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.exceptions import ConvergenceWarning
+
+from constants import PATH
 from churn_library import (
     import_data,
     perform_eda,
     encoder_helper,
     perform_feature_engineering,
     train_models,
+    classification_report_image
 )
-from constants import PATH
-from sklearn.model_selection import train_test_split
-from churn_library import classification_report_image
-from sklearn.datasets import make_classification
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.exceptions import ConvergenceWarning
+
 
 logging.basicConfig(
     filename="./logs/churn_library.log",
@@ -84,20 +87,20 @@ def test_import():
         raise err
 
 
-def test_eda(perform_eda):
+def test_eda(perform_eda_data):
     """
     test perform eda function
     """
     try:
         df = import_data(PATH)
-        perform_eda(df)
+        perform_eda_data(df)
         logging.info("TEST perform_eda: SUCCESS")
     except Exception as err:
         logging.error("TEST perform_eda: An error occurred")
         raise err
 
 
-def test_encoder_helper(encoder_helper):
+def test_encoder_helper(encoder_helper_data):
     """
     test encoder helper
     """
@@ -110,7 +113,7 @@ def test_encoder_helper(encoder_helper):
             "Income_Category",
             "Card_Category",
         ]
-        df = encoder_helper(df, category_lst, "Churn")
+        df = encoder_helper_data(df, category_lst, "Churn")
         assert "Gender_Churn" in df.columns
         logging.info("Testing encoder_helper: SUCCESS")
     except Exception as err:
@@ -134,13 +137,13 @@ def test_perform_feature_engineering(
             "Card_Category",
         ]
         df = encoder_helper(df, category_lst, "Churn")
-        X_train, X_test, y_train, y_test = perform_feature_engineering(
+        x_train, x_test, y_train, y_test = perform_feature_engineering(
             df, "Churn")
-        assert X_train.shape[0] > 0
-        assert X_test.shape[0] > 0
+        assert x_train.shape[0] > 0
+        assert x_test.shape[0] > 0
         assert y_train.shape[0] > 0
         assert y_test.shape[0] > 0
-        assert X_train.shape[1] == X_test.shape[1]
+        assert x_train.shape[1] == x_test.shape[1]
         logging.info("TEST perform_feature_engineering: SUCCESS")
     except Exception as err:
         logging.error("TEST perform_feature_engineering: An error occurred")
@@ -152,20 +155,20 @@ def test_classification_report_image(tmp_path):
     test classification_report_image
     """
 
-    X, y = make_classification(n_samples=200, n_features=5, random_state=42)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.3, random_state=42
+    x, y = make_classification(n_samples=200, n_features=5, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.3, random_state=42
     )
 
     lr = LogisticRegression(max_iter=1000)
     rf = RandomForestClassifier()
-    lr.fit(X_train, y_train)
-    rf.fit(X_train, y_train)
+    lr.fit(x_train, y_train)
+    rf.fit(x_train, y_train)
 
-    y_train_preds_lr = lr.predict(X_train)
-    y_test_preds_lr = lr.predict(X_test)
-    y_train_preds_rf = rf.predict(X_train)
-    y_test_preds_rf = rf.predict(X_test)
+    y_train_preds_lr = lr.predict(x_train)
+    y_test_preds_lr = lr.predict(x_test)
+    y_train_preds_rf = rf.predict(x_train)
+    y_test_preds_rf = rf.predict(x_test)
 
     os.makedirs("images", exist_ok=True)
     classification_report_image(
@@ -182,9 +185,9 @@ def test_classification_report_image(tmp_path):
 
 
 def test_train_models(
-        train_models,
-        encoder_helper,
-        perform_feature_engineering):
+        train_models_data,
+        encoder_helper_data,
+        perform_feature_engineering_data):
     """
     test train_models
     """
@@ -198,10 +201,10 @@ def test_train_models(
             "Income_Category",
             "Card_Category",
         ]
-        df = encoder_helper(df, category_lst, "Churn")
-        X_train, X_test, y_train, y_test = perform_feature_engineering(
+        df = encoder_helper_data(df, category_lst, "Churn")
+        x_train, x_test, y_train, y_test = perform_feature_engineering_data(
             df, "Churn")
-        train_models(X_train, X_test, y_train, y_test)
+        train_models_data(x_train, x_test, y_train, y_test)
 
         # Check if model files and images are created
         assert os.path.exists("./models/rfc_model.pkl")
@@ -214,11 +217,10 @@ def test_train_models(
         print("TEST train_models: FAILED")
         raise err
 
-
 if __name__ == "__main__":
     test_import()
     test_eda(perform_eda)
     test_encoder_helper(encoder_helper)
     test_perform_feature_engineering(
-        perform_feature_engineering, encoder_helper)
+    perform_feature_engineering, encoder_helper)
     train_models(train_models, encoder_helper, perform_feature_engineering)
