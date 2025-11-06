@@ -6,10 +6,7 @@ This project is part of the **ML DevOps Engineer Nanodegree** by Udacity. It aim
 
 ## Certificate
 
-
-![certificate](./images/certificate-png)  
-
-
+![certificate](.certificate.png)
 
 ## 📁 Project Structure
 
@@ -99,6 +96,7 @@ This will:
 ## 📺 Screenhot
 
 ### eda
+
 ![churn_distribution](./images/eda/churn_distribution.png)  
 ![correlation_matrix](./images/eda/correlation_matrix.png)  
 ![customer_age_distribution](./images/eda/customer_age_distribution.png)
