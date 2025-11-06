@@ -6,7 +6,7 @@ This project is part of the **ML DevOps Engineer Nanodegree** by Udacity. It aim
 
 ## Certificate
 
-![certificate](.certificate.png)
+![certificate](certificate.png)
 
 ## 📁 Project Structure
 
